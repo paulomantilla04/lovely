@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from "framer-motion"
-import { UserIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { Profile } from "@/types/index"
 
@@ -42,18 +41,14 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
                 <h2 className="text-3xl font-bold tracking-tight font-montserrat">
                   {user.name}, {user.age}
                 </h2>
-                <div className="mt-2 flex items-center text-muted-foreground font-inter">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  <span className="capitalize">{user.lookingFor}</span>
-                </div>
               </div>
 
               <div className="h-px w-full bg-border" />
 
               <section>
                 <h3 className="mb-2 text-lg font-semibold font-montserrat">Sobre mí</h3>
-                <p className="leading-relaxed text-muted-foreground font-inter text-sm">
-                    {user.bio || "Sin descripción."}
+                <p className="leading-relaxed text-muted-foreground font-inter text-base whitespace-pre-wrap">
+                    {user.description || "Este usuario no ha escrito una descripción aún."}
                 </p>
               </section>
 

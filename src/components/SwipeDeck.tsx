@@ -61,11 +61,11 @@ export function SwipeDeck() {
       let query = supabase
         .from("profiles")
         .select(`
-          id, name, date_of_birth, looking_for, gender,
-          photos (photo_url),
-          user_hobbies (
+            id, name, date_of_birth, looking_for, gender, description,
+            photos (photo_url),
+            user_hobbies (
             hobbies (name)
-          )
+            )
         `)
         .not("id", "in", `(${swipedIds.join(',')})`)
         .limit(20)
@@ -85,6 +85,8 @@ export function SwipeDeck() {
         bio: `Busco: ${p.looking_for} | ${p.gender}`,
         lookingFor: p.looking_for,
         photos: p.photos.map((ph: any) => ph.photo_url),
+        description: p.description,
+        gender: p.gender,
         hobbies: p.user_hobbies.map((uh: any) => uh.hobbies?.name || ""),
       }))
 

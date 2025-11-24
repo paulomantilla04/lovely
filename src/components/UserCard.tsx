@@ -4,6 +4,7 @@ import { Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Profile } from "@/types/index"
+import { Badge } from "@/components/ui/badge"
 
 interface UserCardProps {
   user: Profile
@@ -133,28 +134,53 @@ export function UserCard({ user, active, removeCard, onExpand, swipeDirection }:
       )}
 
       {/* Info Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-left">
-        <div className="flex items-end justify-between">
-          <div className="pointer-events-none">
-            <h2 className="text-3xl font-bold text-white shadow-sm font-montserrat">
-              {user.name}, {user.age}
-            </h2>
-            <p className="mt-1 line-clamp-1 text-sm font-medium text-white/90 font-inter">
-               {user.hobbies[0] || "Estudiante"}
-            </p>
+      <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-left bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-20">
+        <div className="flex flex-col gap-3">
+          {/* Nombre y Edad */}
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-3xl font-bold text-white shadow-sm font-montserrat">
+                {user.name}, {user.age}
+              </h2>
+            </div>
+            
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-10 w-10 shrink-0 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-white/30 border-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                onExpand(user)
+              }}
+            >
+              <Info className="h-5 w-5" />
+            </Button>
           </div>
 
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-10 w-10 shrink-0 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-white/30 border-0"
-            onClick={(e) => {
-              e.stopPropagation()
-              onExpand(user)
-            }}
-          >
-            <Info className="h-5 w-5" />
-          </Button>
+          {/* Descripción */}
+          {user.description && (
+            <p className="text-sm text-white/90 font-inter line-clamp-2 leading-relaxed">
+              {user.description}
+            </p>
+          )}
+
+          {/* Badges de Hobbies */}
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {user.hobbies.slice(0, 3).map((hobby, idx) => ( // Mostramos max 3 hobbies en la carta
+              <Badge 
+                key={idx} 
+                variant="secondary" 
+                className="bg-white/20 text-white hover:bg-white/30 border-0 text-[10px] px-2 py-0.5 backdrop-blur-sm"
+              >
+                {hobby}
+              </Badge>
+            ))}
+            {user.hobbies.length > 3 && (
+              <Badge variant="secondary" className="bg-white/20 text-white border-0 text-[10px] px-2 py-0.5">
+                +{user.hobbies.length - 3}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

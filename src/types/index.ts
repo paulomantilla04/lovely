@@ -3,7 +3,9 @@ export interface Profile {
   id: string
   name: string
   age: number
-  bio: string // Mapearemos 'looking_for' o crearemos una bio compuesta
+  gender: string
+  bio: string // Mantenemos bio por compatibilidad o lógica calculada
+  description?: string // NUEVO CAMPO
   photos: string[]
   lookingFor: string
   hobbies: string[]

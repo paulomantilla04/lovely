@@ -51,6 +51,7 @@ type FormData = {
   dob: string
   otp: string
   instagram: string
+  description: string
   gender: string
   interestedIn: string[]
   intent: string
@@ -65,6 +66,7 @@ const INITIAL_DATA: FormData = {
   dob: "",
   otp: "",
   instagram: "",
+  description: "",
   gender: "",
   interestedIn: [],
   intent: "",
@@ -124,7 +126,7 @@ export function OnboardingWizard() {
         isValid = formData.otp.length === 8
         break
       case 3:
-        isValid = !!formData.instagram
+        isValid = !!formData.instagram && !!formData.description
         break
       case 4:
         isValid = !!formData.gender
@@ -209,7 +211,8 @@ export function OnboardingWizard() {
       gender: formData.gender.toLowerCase(),
       preferences: formData.interestedIn.map(p => p.toLowerCase()),
       instagram: formData.instagram,
-      looking_for: formData.intent
+      looking_for: formData.intent,
+      description: formData.description // NUEVO: Guardar descripción
     })
     if (profileError) throw profileError
 
@@ -495,22 +498,43 @@ function StepSocial({ data, update }: { data: FormData; update: any }) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-foreground font-montserrat">Conecta tu Instagram</h2>
-        <p className="text-muted-foreground font-inter text-sm">Esto ayuda a verificar que eres una persona real.</p>
+        <h2 className="text-2xl font-bold text-foreground font-montserrat">Tu perfil social</h2>
+        <p className="text-muted-foreground font-inter text-sm">Cuéntanos un poco sobre ti y conecta tus redes.</p>
       </div>
-      <div className="pt-4">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Instagram className="h-5 w-5 text-muted-foreground" />
-            <span className="text-muted-foreground ml-2 font-medium">@</span>
+      
+      <div className="space-y-4 pt-2">
+        {/* Input de Instagram existente */}
+        <div className="space-y-2 font-montserrat">
+          <label className="text-xs font-medium ml-1">Instagram (para verificar identidad)</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Instagram className="h-5 w-5 text-muted-foreground" />
+              <span className="text-muted-foreground ml-2 font-medium">@</span>
+            </div>
+            <input
+              type="text"
+              value={data.instagram}
+              onChange={(e) => update("instagram", e.target.value)}
+              placeholder="usuario"
+              className="w-full pl-16 p-2 rounded-lg bg-muted/50 border border-transparent focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+            />
           </div>
-          <input
-            type="text"
-            value={data.instagram}
-            onChange={(e) => update("instagram", e.target.value)}
-            placeholder="usuario"
-            className="w-full pl-16 p-2 rounded-lg bg-muted/50 border border-transparent focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+        </div>
+
+        {/* NUEVO: Input de Descripción */}
+        <div className="space-y-2 font-montserrat">
+          <label className="text-xs font-medium ml-1">Sobre ti (Descripción)</label>
+          <textarea
+            value={data.description}
+            onChange={(e) => update("description", e.target.value)}
+            placeholder="Me gusta el café, los gatos y programar en React..."
+            maxLength={150}
+            rows={4}
+            className="w-full p-3 rounded-lg bg-muted/50 border border-transparent focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none text-sm font-inter"
           />
+          <div className="text-right text-xs text-muted-foreground">
+            {data.description.length}/150
+          </div>
         </div>
       </div>
     </div>
