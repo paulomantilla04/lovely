@@ -100,7 +100,7 @@ export function OnboardingWizard() {
 
     switch (step) {
       case 1:
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@uaeh\.edu\.mx$/
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         const isEmailValid = emailRegex.test(formData.email)
         const isPasswordValid = formData.password.length >= 6
 
@@ -115,7 +115,7 @@ export function OnboardingWizard() {
           if (!isAgeValid) newErrors.dob = "Debes tener al menos 16 años."
         }
 
-        if (!isEmailValid && formData.email) newErrors.email = "Usa tu correo institucional (@uaeh.edu.mx)"
+        if (!isEmailValid && formData.email) newErrors.email = "Ingresa un correo electrónico válido"
         if (!isPasswordValid && formData.password) newErrors.password = "Mínimo 6 caracteres"
 
         isValid = !!formData.firstName && isEmailValid && isAgeValid && isPasswordValid
