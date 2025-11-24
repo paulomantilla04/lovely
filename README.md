@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# Lovely 💖
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Lovely** es una aplicación web de citas tipo "Tinder" diseñada exclusivamente para la comunidad universitaria. Conecta a estudiantes permitiéndoles descubrir perfiles, hacer "match" y conocer gente nueva dentro de su campus de forma segura y divertida.
 
-Currently, two official plugins are available:
+![Lovely App Screenshot](https://placehold.co/1200x600?text=Lovely+Preview) ## 🚀 Tecnologías
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+El proyecto está construido con un stack moderno enfocado en rendimiento, escalabilidad y experiencia de desarrollador:
 
-## React Compiler
+- **Frontend:** [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
+- **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Componentes UI:** [Shadcn/ui](https://ui.shadcn.com/) (Radix UI + Tailwind)
+- **Animaciones:** [Framer Motion](https://www.framer.com/motion/)
+- **Enrutamiento:** [React Router v7](https://reactrouter.com/)
+- **Backend & Base de Datos:** [Supabase](https://supabase.com/) (PostgreSQL, Auth, Storage, Realtime)
+- **Iconos:** [Lucide React](https://lucide.dev/)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Características Principales
 
-## Expanding the ESLint configuration
+- **Autenticación Segura:** Registro exclusivo con correo institucional (`@uaeh.edu.mx`) y verificación vía OTP.
+- **Onboarding Interactivo:** Wizard paso a paso para completar perfil, subir fotos y definir intereses.
+- **Swipe Deck:** Interfaz fluida para dar "Like" o "Nope" a otros perfiles con gestos o botones.
+- **Matching en Tiempo Real:** Lógica de emparejamiento automática (backend-driven) cuando hay interés mutuo.
+- **Perfiles Detallados:** Visualización de fotos, biografía, edad y hobbies mediante badges.
+- **Gestión de Preferencias:** Filtrado por género e intereses.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Configuración del Proyecto
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Sigue estos pasos para levantar el proyecto en tu entorno local.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerrequisitos
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js (v18 o superior)
+- npm, yarn, pnpm o bun
+- Una cuenta en [Supabase](https://supabase.com/)
+
+### 1. Clonar el repositorio e instalar dependencias
+
+```bash
+git clone [https://github.com/tu-usuario/lovely.git](https://github.com/tu-usuario/lovely.git)
+cd lovely
+bun install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Configurar variables de entorno
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Crea un archivo `.env` en la raíz del proyecto y agrega las siguientes variables:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_SUPABASE_URL=tu-url-supabase
+VITE_SUPABASE_ANON_KEY=tu-clave-anonima-supabase
 ```
+
+### 3. Configurar Backend (Supabase)
+
+Este proyecto utiliza **Supabase** como Backend-as-a-Service. Para ejecutarlo localmente, necesitas crear un proyecto en Supabase y configurar lo siguiente:
+
+1. **Autenticación:** Habilitar proveedores de correo electrónico/contraseña.
+2. **Base de Datos (PostgreSQL):**
+   - Se requiere una tabla `profiles` vinculada a la tabla `auth.users`.
+   - Tablas relacionales para `swipes`, `matches` y `hobbies`.
+   - Triggers para el manejo automático de *matching*.
+3. **Storage:** Crear un bucket privado llamado `user_photos` con políticas RLS para permitir la carga de imágenes de perfil.
+
+> **Nota:** La lógica de negocio crítica (como el algoritmo de matching) se ejecuta a nivel de base de datos para garantizar la integridad y el rendimiento.
+
+
