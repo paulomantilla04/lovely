@@ -2,7 +2,8 @@
 
 **Lovely** es una aplicación web de citas tipo "Tinder" diseñada exclusivamente para la comunidad universitaria. Conecta a estudiantes permitiéndoles descubrir perfiles, hacer "match" y conocer gente nueva dentro de su campus de forma segura y divertida.
 
-![Lovely App Screenshot](https://placehold.co/1200x600?text=Lovely+Preview) ## 🚀 Tecnologías
+
+## 🚀 Tecnologías
 
 El proyecto está construido con un stack moderno enfocado en rendimiento, escalabilidad y experiencia de desarrollador:
 
