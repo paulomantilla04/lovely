@@ -86,11 +86,22 @@ export function OnboardingWizard() {
 
   useEffect(() => {
     const fetchHobbies = async () => {
-      const { data } = await supabase.from('hobbies').select('*')
-      if (data) setDbHobbies(data)
+      // Opcional: Solo intentar si hay usuario, para evitar errores 401 innecesarios
+      if (!user) return 
+
+      const { data, error } = await supabase.from('hobbies').select('*')
+      
+      if (error) {
+        console.error("Error cargando hobbies:", error)
+      }
+      
+      if (data) {
+        setDbHobbies(data)
+      }
     }
+
     fetchHobbies()
-  }, [])
+  }, [user])
 
   useEffect(() => {
     validateStep()
