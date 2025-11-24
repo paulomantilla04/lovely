@@ -1,5 +1,5 @@
-import { useState, type MouseEvent } from "react"
-import { motion, useMotionValue, useTransform, type PanInfo } from "framer-motion"
+import { useState, type MouseEvent, useEffect } from "react"
+import { motion, useMotionValue, useTransform, type PanInfo, useAnimation } from "framer-motion"
 import { Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -10,18 +10,46 @@ interface UserCardProps {
   active: boolean
   removeCard: (id: string, direction: "left" | "right") => void
   onExpand: (user: Profile) => void
+  swipeDirection: "left" | "right" | null 
 }
 
-export function UserCard({ user, active, removeCard, onExpand }: UserCardProps) {
+export function UserCard({ user, active, removeCard, onExpand, swipeDirection }: UserCardProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const controls = useAnimation() 
 
-  // Motion values
+  // Lógica de Preload
+  useEffect(() => {
+    user.photos.forEach((url) => {
+      const img = new Image()
+      img.src = url
+    })
+  }, [user.photos])
+
+  // Valores de movimiento para el arrastre (DRAG)
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-200, 200], [-25, 25])
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0])
   
-  const likeOpacity = useTransform(x, [25, 150], [0, 1])
-  const nopeOpacity = useTransform(x, [-25, -150], [0, 1])
+  const dragLikeOpacity = useTransform(x, [25, 150], [0, 1])
+  const dragNopeOpacity = useTransform(x, [-25, -150], [0, 1])
+
+  // Efecto para manejar los botones manuales
+  useEffect(() => {
+    if (!swipeDirection) return;
+
+    const targetX = swipeDirection === "right" ? 500 : -500;
+    const targetRotate = swipeDirection === "right" ? 20 : -20;
+
+    controls.start({
+      x: targetX,
+      rotate: targetRotate,
+      opacity: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }).then(() => {
+      removeCard(user.id, swipeDirection);
+    });
+
+  }, [swipeDirection, controls, removeCard, user.id]);
+
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 100) {
@@ -36,22 +64,26 @@ export function UserCard({ user, active, removeCard, onExpand }: UserCardProps) 
     setCurrentPhotoIndex((prev) => (prev + 1) % user.photos.length)
   }
 
+  const finalLikeOpacity = swipeDirection === "right" ? 1 : dragLikeOpacity;
+  const finalNopeOpacity = swipeDirection === "left" ? 1 : dragNopeOpacity;
+
   return (
     <motion.div
       style={{
         x: active ? x : 0,
         rotate: active ? rotate : 0,
-        opacity: active ? 1 : 1,
-        scale: active ? 1 : 0.95,
         zIndex: active ? 50 : 0,
       }}
-      drag={active ? "x" : false}
+      animate={controls} 
+      initial={{ scale: active ? 1 : 0.95, opacity: 1 }}
+      whileTap={{ scale: active ? 1.02 : 0.95 }}
+      drag={active && !swipeDirection ? "x" : false} 
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.6}
       onDragEnd={handleDragEnd}
       className={cn(
-        "absolute inset-0 h-full w-full overflow-hidden rounded-3xl bg-black shadow-xl border border-white/10",
-        active ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
+        "absolute inset-0 h-full w-full overflow-hidden rounded-3xl bg-black shadow-xl border border-white/10 transition-transform",
+        active ? "cursor-grab active:cursor-grabbing" : "pointer-events-none scale-95 opacity-50"
       )}
       onClick={active ? cyclePhoto : undefined}
     >
@@ -61,6 +93,8 @@ export function UserCard({ user, active, removeCard, onExpand }: UserCardProps) 
           src={user.photos[currentPhotoIndex] || "https://placehold.co/600x800?text=No+Photo"}
           alt={user.name}
           className="h-full w-full object-cover pointer-events-none select-none"
+          // Priority hint para navegadores modernos (opcional pero útil)
+          fetchPriority={active ? "high" : "low"}
         />
       </div>
 
@@ -83,10 +117,16 @@ export function UserCard({ user, active, removeCard, onExpand }: UserCardProps) 
       {/* Feedback Visual (Like/Nope) */}
       {active && (
         <>
-          <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 -rotate-12 rounded-lg border-4 border-green-500 px-4 py-1 z-30">
+          <motion.div 
+            style={{ opacity: finalLikeOpacity }} 
+            className="absolute top-8 left-8 -rotate-12 rounded-lg border-4 border-green-500 px-4 py-1 z-30"
+          >
             <span className="text-4xl font-bold uppercase tracking-widest text-green-500">LIKE</span>
           </motion.div>
-          <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 rotate-12 rounded-lg border-4 border-red-500 px-4 py-1 z-30">
+          <motion.div 
+            style={{ opacity: finalNopeOpacity }} 
+            className="absolute top-8 right-8 rotate-12 rounded-lg border-4 border-red-500 px-4 py-1 z-30"
+          >
             <span className="text-4xl font-bold uppercase tracking-widest text-red-500">NOPE</span>
           </motion.div>
         </>

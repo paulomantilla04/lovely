@@ -12,9 +12,9 @@ export function SwipeDeck() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
-
-  // Índice activo (último elemento del array es la carta superior)
-  const activeIndex = users.length - 1
+  
+  // NUEVO: Estado para controlar la dirección del swipe manual
+  const [manualSwipeDirection, setManualSwipeDirection] = useState<"left" | "right" | null>(null)
 
   useEffect(() => {
     if (currentUser) {
@@ -23,23 +23,42 @@ export function SwipeDeck() {
   }, [currentUser])
 
   const fetchProfiles = async () => {
+    // (El código de fetchProfiles es el mismo de la respuesta anterior)
     setLoading(true)
     try {
       if (!currentUser) return
 
-      // 1. Obtener a quién ya le di swipe
+      const { data: myProfile } = await supabase
+        .from("profiles")
+        .select("preferences")
+        .eq("id", currentUser.id)
+        .single()
+
+      let targetGenders: string[] = []
+      if (myProfile?.preferences) {
+        if (myProfile.preferences.includes("todos")) {
+          targetGenders = ["hombre", "mujer", "no binario", "otro"]
+        } else {
+          const map: Record<string, string> = {
+            "hombres": "hombre",
+            "mujeres": "mujer",
+            "personas no binarias": "no binario"
+          }
+          targetGenders = myProfile.preferences
+            .map((p: string) => map[p] || p)
+            .filter(Boolean)
+        }
+      }
+
       const { data: swipes } = await supabase
         .from("swipes")
         .select("to_user")
         .eq("from_user", currentUser.id)
       
       const swipedIds = swipes?.map(s => s.to_user) || []
-      swipedIds.push(currentUser.id) // Excluirse a sí mismo
+      swipedIds.push(currentUser.id)
 
-      // 2. Obtener perfiles que NO están en esa lista
-      // Nota: En producción, esto se optimiza con una función RPC o filtro .not.in
-      // Traemos perfiles + fotos + hobbies
-      const { data: profiles, error } = await supabase
+      let query = supabase
         .from("profiles")
         .select(`
           id, name, date_of_birth, looking_for, gender,
@@ -49,16 +68,21 @@ export function SwipeDeck() {
           )
         `)
         .not("id", "in", `(${swipedIds.join(',')})`)
-        .limit(20) // Paginación simple
+        .limit(20)
+
+      if (targetGenders.length > 0) {
+        query = query.in("gender", targetGenders)
+      }
+
+      const { data: profiles, error } = await query
 
       if (error) throw error
 
-      // 3. Transformar datos al formato Profile
       const formattedProfiles: Profile[] = profiles.map((p: any) => ({
         id: p.id,
         name: p.name,
         age: calculateAge(p.date_of_birth),
-        bio: `Busco: ${p.looking_for} | ${p.gender}`, // Usamos looking_for como bio simple por ahora
+        bio: `Busco: ${p.looking_for} | ${p.gender}`,
         lookingFor: p.looking_for,
         photos: p.photos.map((ph: any) => ph.photo_url),
         hobbies: p.user_hobbies.map((uh: any) => uh.hobbies?.name || ""),
@@ -73,6 +97,7 @@ export function SwipeDeck() {
   }
 
   const calculateAge = (dob: string) => {
+    // (El código de calculateAge es el mismo)
     const birth = new Date(dob)
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
@@ -81,14 +106,17 @@ export function SwipeDeck() {
     return age
   }
 
-  const handleSwipe = async (id: string, direction: "left" | "right") => {
-    // UI Optimista: Remover carta inmediatamente
-    const userToSwipe = users.find(u => u.id === id)
+  const handleSwipeComplete = async (id: string, direction: "left" | "right") => {
+    // Esta función se llama cuando la animación termina (ya sea por drag o botón)
+    
+    // Resetear el estado manual
+    setManualSwipeDirection(null)
+    
+    // Remover carta del estado
     setUsers((prev) => prev.filter((user) => user.id !== id))
 
-    if (!userToSwipe || !currentUser) return
+    if (!currentUser) return
 
-    // Guardar en Supabase
     const action = direction === "right" ? "like" : "dislike"
     const { error } = await supabase.from("swipes").insert({
       from_user: currentUser.id,
@@ -98,16 +126,15 @@ export function SwipeDeck() {
 
     if (error) console.error("Error saving swipe:", error)
     
-    // Si quedan pocas cartas, recargar (opcional)
     if (users.length <= 2) {
-        // fetchProfiles() // Descomentar para carga infinita
+       // fetchProfiles() 
     }
   }
 
-  const handleManualSwipe = (direction: "left" | "right") => {
-    if (users.length === 0) return
-    const user = users[activeIndex]
-    handleSwipe(user.id, direction)
+  const handleManualBtnClick = (direction: "left" | "right") => {
+    if (users.length === 0 || manualSwipeDirection) return
+    // Solo indicamos la dirección, la UserCard se encargará de animarse y llamar a handleSwipeComplete
+    setManualSwipeDirection(direction)
   }
 
   if (loading) {
@@ -116,11 +143,9 @@ export function SwipeDeck() {
 
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden">
-      {/* Stack de Cartas */}
       <div className="relative flex h-[65vh] w-full max-w-sm flex-col items-center justify-center">
         {users.length > 0 ? (
           users.map((user, index) => {
-            // Renderizar solo las últimas 2 para rendimiento
             if (index < users.length - 2) return null
             const isTop = index === users.length - 1
             return (
@@ -128,13 +153,15 @@ export function SwipeDeck() {
                 key={user.id} 
                 user={user} 
                 active={isTop} 
-                removeCard={handleSwipe} 
-                onExpand={setSelectedUser} 
+                // Pasamos la función que se ejecutará AL FINAL de la animación
+                removeCard={handleSwipeComplete} 
+                onExpand={setSelectedUser}
+                // Pasamos la dirección manual solo si es la carta de arriba
+                swipeDirection={isTop ? manualSwipeDirection : null}
               />
             )
           })
         ) : (
-            // Estado vacío
           <div className="flex flex-col items-center justify-center text-center p-6">
             <div className="mb-4 rounded-full bg-muted p-6 animate-pulse">
               <RotateCcw className="h-8 w-8 text-muted-foreground" />
@@ -146,14 +173,14 @@ export function SwipeDeck() {
         )}
       </div>
 
-      {/* Botones de Acción */}
       <div className="mt-8 flex items-center justify-center gap-8 z-10">
         <Button
           variant="outline"
           size="icon"
           className="h-16 w-16 rounded-full border-2 border-red-500 bg-background text-red-500 shadow-lg hover:bg-red-50 hover:text-red-600 hover:scale-110 transition-transform disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
-          onClick={() => handleManualSwipe("left")}
-          disabled={users.length === 0}
+          // Usamos la nueva función del botón
+          onClick={() => handleManualBtnClick("left")}
+          disabled={users.length === 0 || manualSwipeDirection !== null}
         >
           <X className="h-8 w-8" />
         </Button>
@@ -162,8 +189,9 @@ export function SwipeDeck() {
           variant="outline"
           size="icon"
           className="h-16 w-16 rounded-full border-2 border-green-500 bg-background text-green-500 shadow-lg hover:bg-green-50 hover:text-green-600 hover:scale-110 transition-transform disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
-          onClick={() => handleManualSwipe("right")}
-          disabled={users.length === 0}
+          // Usamos la nueva función del botón
+          onClick={() => handleManualBtnClick("right")}
+          disabled={users.length === 0 || manualSwipeDirection !== null}
         >
           <Heart className="h-8 w-8 fill-current" />
         </Button>
