@@ -27,7 +27,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 h-[85vh] rounded-t-[2rem] bg-background p-6 shadow-2xl overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 z-[70] h-[85vh] rounded-t-[2rem] bg-background p-6 shadow-2xl overflow-y-auto"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.2}

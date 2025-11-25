@@ -4,6 +4,7 @@ import { supabase } from "@/config/supabaseClient";
 import { Dock } from "@/components/Dock";
 import { Card, CardContent } from "@/components/ui/card";
 import { Instagram, Loader2 } from "lucide-react";
+import { motion, type Variants } from "framer-motion"; 
 
 interface MatchProfile {
   id: string;
@@ -11,6 +12,28 @@ interface MatchProfile {
   instagram: string | null;
   photo: string | null;
 }
+
+// Variantes de animación para el contenedor padre (orquestador)
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1, // Retraso entre cada hijo
+      delayChildren: 0.1
+    }
+  }
+};
+
+// Variantes para los elementos hijos (tarjetas)
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 24 }
+  }
+};
 
 export default function Matches() {
   const { user } = UserAuth();
@@ -23,7 +46,6 @@ export default function Matches() {
 
   const fetchMatches = async () => {
     try {
-      // 1. Obtener los IDs de los matches
       const { data: matchData, error } = await supabase
         .from("matches")
         .select("user1, user2")
@@ -31,7 +53,6 @@ export default function Matches() {
 
       if (error) throw error;
 
-      // 2. Filtrar para obtener solo el ID del "otro" usuario
       const friendIds = matchData.map((m) => 
         m.user1 === user?.id ? m.user2 : m.user1
       );
@@ -41,7 +62,6 @@ export default function Matches() {
         return;
       }
 
-      // 3. Obtener perfiles de esos usuarios
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select("id, name, instagram, photos(photo_url)")
@@ -49,7 +69,6 @@ export default function Matches() {
 
       if (profileError) throw profileError;
 
-      // Formatear datos
       const formattedMatches = profiles.map((p: any) => ({
         id: p.id,
         name: p.name,
@@ -71,38 +90,59 @@ export default function Matches() {
         <h1 className="text-2xl font-bold font-montserrat text-primary">Tus Matches</h1>
       </header>
 
-      <div className="p-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Contenedor principal con padding */}
+      <div className="p-4">
         {loading ? (
-          <div className="flex justify-center col-span-full py-10"><Loader2 className="animate-spin text-primary" /></div>
-        ) : matches.length > 0 ? (
-          matches.map((match) => (
-            <Card key={match.id} className="overflow-hidden border-none shadow-md">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="h-16 w-16 rounded-full overflow-hidden bg-muted">
-                    <img src={match.photo || "/placeholder-user.jpg"} alt={match.name} className="h-full w-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold font-montserrat text-lg truncate">{match.name}</h3>
-                  {match.instagram ? (
-                    <a 
-                      href={`https://instagram.com/${match.instagram.replace('@', '')}`} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-pink-600 text-sm flex items-center gap-1 hover:underline font-medium font-montserrat"
-                    >
-                      <Instagram className="w-3 h-3" /> @{match.instagram.replace('@', '')}
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground text-xs">Sin Instagram</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <div className="col-span-full text-center text-muted-foreground py-10 font-inter">
-            No tienes matches todavía. ¡Sigue explorando!
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-primary w-8 h-8" />
           </div>
+        ) : matches.length > 0 ? (
+          // Convertimos el grid en motion.div
+          <motion.div 
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {matches.map((match) => (
+              // Cada match es un motion.div hijo
+              <motion.div key={match.id} variants={itemVariants} layout>
+                <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-full overflow-hidden bg-muted shrink-0 border-2 border-white shadow-sm">
+                        <img src={match.photo || "/placeholder-user.jpg"} alt={match.name} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold font-montserrat text-lg truncate">{match.name}</h3>
+                      {match.instagram ? (
+                        <a 
+                          href={`https://instagram.com/${match.instagram.replace('@', '')}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-pink-600 text-sm flex items-center gap-1 hover:underline font-medium font-montserrat"
+                        >
+                          <Instagram className="w-3 h-3" /> @{match.instagram.replace('@', '')}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sin Instagram</span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          // Estado vacío animado
+          <motion.div 
+            className="col-span-full text-center text-muted-foreground py-20 font-inter"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p>No tienes matches todavía.</p>
+            <p className="text-sm mt-1">¡Sigue explorando para conectar!</p>
+          </motion.div>
         )}
       </div>
 

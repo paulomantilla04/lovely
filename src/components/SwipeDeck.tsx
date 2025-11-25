@@ -175,7 +175,7 @@ export function SwipeDeck() {
         )}
       </div>
 
-      <div className="-mt-6 flex items-center justify-center gap-8 z-10">
+      <div className="-mt-4 flex items-center justify-center gap-8 z-[60]">
         <Button
           variant="outline"
           size="icon"

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router";
-import { Flame, MessageCircleHeart, LogOut, User } from "lucide-react"; // Import User icon
+import { Flame, MessageCircleHeart, LogOut, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { UserAuth } from "@/context/AuthContext";
@@ -27,11 +27,10 @@ export function Dock() {
     navigate("/login");
   };
 
-  // Actualizamos la lista de items
   const items: ItemsProps[] = [
     { id: "explore", label: "Explorar", icon: Flame, href: "/explore" },
     { id: "matches", label: "Matches", icon: MessageCircleHeart, href: "/matches" },
-    { id: "profile", label: "Perfil", icon: User, href: "/profile" }, // Nuevo Item
+    { id: "profile", label: "Perfil", icon: User, href: "/profile" },
     { id: "logout", label: "Salir", icon: LogOut, onClick: handleSignOut },
   ];
 
@@ -54,15 +53,17 @@ export function Dock() {
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-2 px-4 py-3 rounded-full border border-white/20 bg-white/30 backdrop-blur-md shadow-xl transition-all hover:bg-white/40">
+      {/* CAMBIO 1: Reduje el padding (px-4 py-3 -> px-3 py-2) para hacerlo más esbelto */}
+      <nav className="flex items-center gap-2 px-3 py-2 rounded-full border border-white/20 bg-white/30 backdrop-blur-md shadow-xl transition-all hover:bg-white/40">
         {items.map((item) => {
           const Icon = item.icon;
-          // Ajuste para detectar ruta activa (ej: /profile activa el icono)
           const isActive = item.href ? activeTab === item.href : false;
           const showTooltip = hoveredItem === item.id || touchedItem === item.id;
 
           const commonClasses = cn(
-            "relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
+            // CAMBIO 2: Reduje el tamaño de los botones (w-12 h-12 -> w-10 h-10)
+            // 40px (w-10) sigue siendo un buen objetivo táctil, pero mucho menos intrusivo que 48px.
+            "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300",
             "active:scale-95 cursor-pointer",
             isActive 
               ? "text-primary-foreground"
@@ -84,16 +85,18 @@ export function Dock() {
                 />
               )}
               
+              {/* El icono se mantiene en w-5 h-5 para buena legibilidad */}
               <Icon className={cn("w-5 h-5 relative z-10 stroke-[2.5px]")} />
 
               <AnimatePresence>
                 {showTooltip && (
                   <motion.div
+                    // Ajuste la posición vertical (-top-14 -> -top-12) para que el tooltip quede pegado al nuevo tamaño
                     initial={{ opacity: 0, y: 10, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute -top-14 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-foreground/90 text-background text-xs font-bold font-montserrat rounded-lg whitespace-nowrap shadow-lg pointer-events-none backdrop-blur-sm z-50"
+                    className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-foreground/90 text-background text-xs font-bold font-montserrat rounded-lg whitespace-nowrap shadow-lg pointer-events-none backdrop-blur-sm z-50"
                   >
                     {item.label}
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground/90 rotate-45" />
