@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router";
-import { Flame, MessageCircleHeart, LogOut } from "lucide-react";
+import { Flame, MessageCircleHeart, LogOut, User } from "lucide-react"; // Import User icon
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { UserAuth } from "@/context/AuthContext";
@@ -27,20 +27,20 @@ export function Dock() {
     navigate("/login");
   };
 
+  // Actualizamos la lista de items
   const items: ItemsProps[] = [
     { id: "explore", label: "Explorar", icon: Flame, href: "/explore" },
     { id: "matches", label: "Matches", icon: MessageCircleHeart, href: "/matches" },
-    { id: "logout", label: "Cerrar Sesión", icon: LogOut, onClick: handleSignOut },
+    { id: "profile", label: "Perfil", icon: User, href: "/profile" }, // Nuevo Item
+    { id: "logout", label: "Salir", icon: LogOut, onClick: handleSignOut },
   ];
 
   const handleTouchStart = (itemId: string) => {
-    // Mobile: Tooltip temporal
     setTouchedItem(itemId);
     setTimeout(() => setTouchedItem(null), 1500);
   };
 
   const handleMouseEnter = (itemId: string) => {
-    // Desktop: Solo activar hover si hay un mouse real
     if (window.matchMedia("(hover: hover)").matches) {
       setHoveredItem(itemId);
     }
@@ -57,18 +57,16 @@ export function Dock() {
       <nav className="flex items-center gap-2 px-4 py-3 rounded-full border border-white/20 bg-white/30 backdrop-blur-md shadow-xl transition-all hover:bg-white/40">
         {items.map((item) => {
           const Icon = item.icon;
+          // Ajuste para detectar ruta activa (ej: /profile activa el icono)
           const isActive = item.href ? activeTab === item.href : false;
           const showTooltip = hoveredItem === item.id || touchedItem === item.id;
 
           const commonClasses = cn(
             "relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
             "active:scale-95 cursor-pointer",
-            // CAMBIO VISUAL:
-            // Ya no ponemos el bg-primary aquí directamente, dejamos que el motion.div lo maneje.
-            // Solo controlamos el color del texto/icono.
             isActive 
-              ? "text-primary-foreground" // Texto blanco (o contraste) cuando está activo
-              : "text-muted-foreground hover:text-primary hover:bg-white/40" // Gris cuando inactivo
+              ? "text-primary-foreground"
+              : "text-muted-foreground hover:text-primary hover:bg-white/40"
           );
 
           const content = (
@@ -78,20 +76,16 @@ export function Dock() {
               onMouseLeave={() => setHoveredItem(null)}
               onTouchStart={() => handleTouchStart(item.id)}
             >
-              {/* FONDO ANIMADO (CAMBIO: Sólido en lugar de anillo) */}
               {isActive && (
                 <motion.div
                   layoutId="dock-active"
                   className="absolute inset-0 bg-primary rounded-full shadow-md" 
-                  // Eliminé: ring-2, ring-offset-2
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
               
-              {/* Icono (z-10 para estar encima del fondo) */}
               <Icon className={cn("w-5 h-5 relative z-10 stroke-[2.5px]")} />
 
-              {/* Tooltip */}
               <AnimatePresence>
                 {showTooltip && (
                   <motion.div
@@ -111,23 +105,14 @@ export function Dock() {
 
           if (item.href) {
             return (
-              <Link
-                key={item.id}
-                to={item.href}
-                className={commonClasses}
-                onClick={() => handleClick(item)}
-              >
+              <Link key={item.id} to={item.href} className={commonClasses} onClick={() => handleClick(item)}>
                 {content}
               </Link>
             );
           }
 
           return (
-            <button
-              key={item.id}
-              onClick={() => handleClick(item)}
-              className={commonClasses}
-            >
+            <button key={item.id} onClick={() => handleClick(item)} className={commonClasses}>
               {content}
             </button>
           );

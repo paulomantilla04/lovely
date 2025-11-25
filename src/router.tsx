@@ -3,32 +3,31 @@ import App from "./App";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Explore from "./pages/Explore";
-import Matches from "./pages/Matches"; // Asegúrate de importar Matches
+import Matches from "./pages/Matches";
+import Profile from "./pages/Profile"; // Importamos la nueva página
 import ProtectedRoute from "./components/ProtectedRoute";
-import MainLayout from "./components/MainLayout"; // Importa el nuevo layout
+import MainLayout from "./components/MainLayout";
 
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <App/>,
         children: [
-            // Rutas públicas (Sin Dock)
+            // Rutas públicas
             { path: "/login", element: <Login/> },
             { path: "/signup", element: <Register/> },
             
-            // Rutas Protegidas (Con Dock y Seguridad)
+            // Rutas Protegidas
             { 
-                // 1. Primero protegemos el acceso
-                // 2. Luego aplicamos el Layout con el Dock
                 element: (
                     <ProtectedRoute>
                         <MainLayout />
                     </ProtectedRoute>
                 ),
-                // Todas estas rutas heredarán el Dock
                 children: [
                     { path: "/explore", element: <Explore/> },
-                    { path: "/matches", element: <Matches/> }
+                    { path: "/matches", element: <Matches/> },
+                    { path: "/profile", element: <Profile/> } 
                 ]
             }
         ]
