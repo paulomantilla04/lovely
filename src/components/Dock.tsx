@@ -18,6 +18,7 @@ export function Dock() {
   const activeTab = location.pathname;
   const { signOut } = UserAuth();
   const navigate = useNavigate();
+  
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [touchedItem, setTouchedItem] = useState<string | null>(null);
 
@@ -33,14 +34,27 @@ export function Dock() {
   ];
 
   const handleTouchStart = (itemId: string) => {
+    // Mobile: Tooltip temporal
     setTouchedItem(itemId);
-    // El tooltip desaparece después de 2 segundos en mobile
-    setTimeout(() => setTouchedItem(null), 1000);
+    setTimeout(() => setTouchedItem(null), 1500);
+  };
+
+  const handleMouseEnter = (itemId: string) => {
+    // Desktop: Solo activar hover si hay un mouse real
+    if (window.matchMedia("(hover: hover)").matches) {
+      setHoveredItem(itemId);
+    }
+  };
+
+  const handleClick = (item: ItemsProps) => {
+    setHoveredItem(null);
+    setTouchedItem(null);
+    if (item.onClick) item.onClick();
   };
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-2 px-4 py-3 rounded-full border border-white/10 bg-white/10 backdrop-blur-xl shadow-2xl">
+      <nav className="flex items-center gap-2 px-4 py-3 rounded-full border border-white/20 bg-white/30 backdrop-blur-md shadow-xl transition-all hover:bg-white/40">
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = item.href ? activeTab === item.href : false;
@@ -48,27 +62,34 @@ export function Dock() {
 
           const commonClasses = cn(
             "relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300",
-            "active:scale-95 cursor-pointer hover:scale-105",
-            isActive ? "bg-primary text-white" : "text-primary"
+            "active:scale-95 cursor-pointer",
+            // CAMBIO VISUAL:
+            // Ya no ponemos el bg-primary aquí directamente, dejamos que el motion.div lo maneje.
+            // Solo controlamos el color del texto/icono.
+            isActive 
+              ? "text-primary-foreground" // Texto blanco (o contraste) cuando está activo
+              : "text-muted-foreground hover:text-primary hover:bg-white/40" // Gris cuando inactivo
           );
 
           const content = (
             <div
-              className="relative"
-              onMouseEnter={() => setHoveredItem(item.id)}
+              className="relative flex items-center justify-center w-full h-full"
+              onMouseEnter={() => handleMouseEnter(item.id)}
               onMouseLeave={() => setHoveredItem(null)}
               onTouchStart={() => handleTouchStart(item.id)}
             >
-              {/* Fondo activo animado */}
+              {/* FONDO ANIMADO (CAMBIO: Sólido en lugar de anillo) */}
               {isActive && (
                 <motion.div
                   layoutId="dock-active"
-                  className="absolute inset-0 bg-white/10 rounded-full"
+                  className="absolute inset-0 bg-primary rounded-full shadow-md" 
+                  // Eliminé: ring-2, ring-offset-2
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
               
-              <Icon className={cn("w-6 h-6 relative z-10")} />
+              {/* Icono (z-10 para estar encima del fondo) */}
+              <Icon className={cn("w-5 h-5 relative z-10 stroke-[2.5px]")} />
 
               {/* Tooltip */}
               <AnimatePresence>
@@ -78,11 +99,10 @@ export function Dock() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.9 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-primary text-white text-sm font-medium font-montserrat rounded-lg whitespace-nowrap shadow-lg pointer-events-none"
+                    className="absolute -top-14 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-foreground/90 text-background text-xs font-bold font-montserrat rounded-lg whitespace-nowrap shadow-lg pointer-events-none backdrop-blur-sm z-50"
                   >
                     {item.label}
-                    {/* Flecha del tooltip */}
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rotate-45" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-foreground/90 rotate-45" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -95,6 +115,7 @@ export function Dock() {
                 key={item.id}
                 to={item.href}
                 className={commonClasses}
+                onClick={() => handleClick(item)}
               >
                 {content}
               </Link>
@@ -104,7 +125,7 @@ export function Dock() {
           return (
             <button
               key={item.id}
-              onClick={item.onClick}
+              onClick={() => handleClick(item)}
               className={commonClasses}
             >
               {content}
