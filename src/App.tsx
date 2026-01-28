@@ -7,7 +7,7 @@ function App() {
 
   if (location.pathname === "/") {
     return <Navigate to="/login" />
-  }
+  } 
 
   return (
     <div className="min-h-screen">

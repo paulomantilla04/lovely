@@ -25,6 +25,8 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import { REGEXP_ONLY_DIGITS } from "input-otp"
+import { Button } from "./ui/button"
+import { useNavigate } from "react-router"
 
 
 // --- UTILITIES ---
@@ -83,6 +85,7 @@ export function OnboardingWizard() {
   const [loading, setLoading] = useState(false)
   const [direction, setDirection] = useState(0)
   const [dbHobbies, setDbHobbies] = useState<HobbyItem[]>([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchHobbies = async () => {
@@ -382,6 +385,7 @@ export function OnboardingWizard() {
 // --- STEP COMPONENTS ---
 
 function StepBasicInfo({ data, update, errors }: { data: FormData; update: any; errors: any }) {
+  const matches = data.firstName.match(/^[a-zA-Z]+$/)
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -390,7 +394,7 @@ function StepBasicInfo({ data, update, errors }: { data: FormData; update: any; 
       </div>
       <div className="space-y-4">
         <div className="space-y-2 font-montserrat">
-          <label className="text-xs font-medium ml-1">Nombre</label>
+          <label className="text-xs font-medium ml-1">Primer nombre</label>
           <input
             type="text"
             value={data.firstName}
@@ -400,12 +404,12 @@ function StepBasicInfo({ data, update, errors }: { data: FormData; update: any; 
           />
         </div>
         <div className="space-y-2 font-montserrat">
-          <label className="text-xs font-medium ml-1">Correo Institucional</label>
+          <label className="text-xs font-medium ml-1">Correo</label>
           <input
             type="email"
             value={data.email}
             onChange={(e) => update("email", e.target.value)}
-            placeholder="usuario@uaeh.edu.mx"
+            placeholder="usuario@mail.com"
             className={cn(
               "w-full p-2 rounded-lg text-xs bg-muted/50 border border-transparent focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none",
               errors.email && "border-destructive/50 focus:border-destructive focus:ring-destructive/20",
@@ -463,7 +467,7 @@ function StepVerification({ data, update, error }: { data: FormData; update: any
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-foreground font-montserrat">Verifica tu correo</h2>
         <p className="text-muted-foreground font-inter text-sm">
-          Hemos enviado un código de 8 dígitos a <span className="font-medium text-foreground">{data.email}</span>
+          Hemos enviado un código de 8 dígitos a <span className="font-medium text-foreground">{data.email}</span>. Recuerda revisar tu bandeja de spam.
         </p>
       </div>
       <div className="pt-4 flex flex-col items-center">
@@ -538,7 +542,7 @@ function StepSocial({ data, update }: { data: FormData; update: any }) {
           <textarea
             value={data.description}
             onChange={(e) => update("description", e.target.value)}
-            placeholder="Me gusta el café, los gatos y programar en React..."
+            placeholder="Me gusta el café, los gatos y salir a caminar"
             maxLength={150}
             rows={4}
             className="w-full p-3 rounded-lg bg-muted/50 border border-transparent focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none text-sm font-inter"
@@ -725,6 +729,8 @@ function StepPhotos({ data, onUpload, onRemove }: { data: FormData; onUpload: an
 }
 
 function SuccessScreen() {
+
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-background flex flex-col items-center rounded-xl justify-center p-6 text-center max-w-md mx-auto">
       <motion.div
@@ -737,6 +743,9 @@ function SuccessScreen() {
       </motion.div>
       <h1 className="text-3xl font-bold text-foreground mb-2 font-montserrat">¡Perfil Creado!</h1>
       <p className="text-muted-foreground mb-8 font-montserrat">Bienvenido a Lovely</p>
+      <Button variant="default" className="w-full" onClick={() => navigate("/explore")}>
+        Continuar
+      </Button>
     </div>
   )
 }

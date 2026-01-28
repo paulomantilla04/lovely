@@ -51,7 +51,7 @@ function Login() {
           <FieldGroup className="font-montserrat">
             <Field>
               <FieldLabel>Correo electrónico</FieldLabel>
-              <Input type="email" placeholder="correo@uaeh.edu.mx" id="email" onChange={(e) => setEmail(e.target.value)} />
+              <Input type="email" placeholder="correo@email.com" id="email" onChange={(e) => setEmail(e.target.value)} />
             </Field>
             <Field>
               <FieldLabel>Contraseña</FieldLabel>
